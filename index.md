@@ -1,8 +1,8 @@
 ---
-layout: home
+layout: default
 ---
 
-<div class="index-content blog">
+<!-- <div class="index-content blog">
     <div class="section">
         <ul class="artical-cate">
             <li class="on"><a href="/"><span>Blog</span></a></li>
@@ -23,4 +23,4 @@ layout: home
     </div>
     <div class="aside">
     </div>
-</div>
+</div> -->
