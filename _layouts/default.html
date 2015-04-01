@@ -17,7 +17,7 @@
 
     <section class="main-content">
     {% for post in site.categories.blog%}
-        <a class="anchor" href="{{ post.url }}" aria-hidden="true"><span class="octicon octicon-link"></span></a>{{ post.title }}</h3>
+        <h3><a class="anchor" href="{{ post.url }}" aria-hidden="true"><span class="octicon octicon-link"></span></a>{{ post.title }}</h3>
         <p>{{ post.description }}</p>
         <hr>
     {% endfor %}
