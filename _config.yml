@@ -4,6 +4,9 @@ markdown: kramdown
 pygments: true
 paginate: 8
 permalink: /:title
+kramdown:
+	input: GFM
+	synatax_highlighter: rouge
 
 title: HarryXie
 url: http://xt1024.github.io
