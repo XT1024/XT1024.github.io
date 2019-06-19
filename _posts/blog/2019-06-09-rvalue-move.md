@@ -111,6 +111,7 @@ int main(int argc, char** argvs) {
 }
 ```
 Province类中存在指针，因此必须自定义复制构造和赋值函数，否则默认的复制构造函数将会两个Province对象持有同一份m_city, 最终在析构时出现`double free`。
+
 而在之前的构造函数、复制构造函数、赋值成员函数基础上，c++11提出了`移动构造函数、移动赋值函数`，移动构造函数和移动赋值函数通过`右值引用`类型接受`右值`参数，例如
 
 ```c++
@@ -157,7 +158,7 @@ int main(int argc, char** argvs) {
 Province home = GetProvince(); // home为左值
 Province a(home)				// 调用正常的复制构造函数
 Province b(std::move(home))		// 因为std::move将home强转成左值，且Province自身定义了移动构造函数，则调用移动构造函数
-								// 特别注意：在home使用std::move转右值后，不应该再使用home，原因是home持有的资源已经部分被移动到b中，已经不是一个完整的Province对象
+// 特别注意：在home使用std::move转右值后，不应该再使用home，原因是home持有的资源已经部分被移动到b中，已经不是一个完整的Province对象
 ```
 
 ## 常见使用错误
