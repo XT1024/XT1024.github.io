@@ -56,7 +56,7 @@ int main(int argc, char** argvs) {
 虚函数表存储了一系列虚函数指针，指向实际的函数地址。
 内存结构如下
 
-![虚函数对象内存结构](/images/cpp-polymorphic/virtual_object_struct.jpg)
+![虚函数对象内存结构](/images/cpp-polymorphic/virtual_object_struct.jpg)
 
 ## 总结
 c++多态的实现原理，是子类根据基类虚函数表以及自身虚函数的override情况，生成自身的虚函数表。类的虚函数表在编译时就已经确定，存储在二进制文件的只读数据段。
