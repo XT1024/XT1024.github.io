@@ -37,9 +37,13 @@ std::future<int> future = task.get_future();
 由上述例子可以看出，`std::future<int>` 被生成以后，可以阻塞等待函数结束并且获取其返回值。除此以外std::future还提供其他的函数。
 （根据cppreference描述，std::future通过一个shared state与`函数封装`(std::async, std::promise, std::packaged_task)关联，从而实现结果的获取。
 > `get` 阻塞获取函数的返回值
+
 > `valid` 判断是否关联shared state
+
 > `wait` 阻塞等待结果执行完成
+
 > `wait_for` 阻塞等待结果执行完成（指定等待时间间隔）,返回当前状态
+
 > `wait_until` 阻塞等待结果执行完成（指定等待至时间点），返回当前状态
 
 总结： std::future提供了获取异步操作执行`结果`的机制，并且可以阻塞获取结果状态。 拿到绑定后的std::future，等于拿到了一张喜茶的叫号单，随时可以查询你的订单当前的状态和结果，无论是看完电影再来取(执行完后调用get)，还是选择在店里等饮料做好（wait, get）都可以随你喜欢。
