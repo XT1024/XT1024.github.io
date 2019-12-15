@@ -74,4 +74,55 @@ int main(int argc, char** argvs) {
 > std::promise 承诺给你一个 std::future，在那之前，请你务必等我（阻塞)。 是c++程序员的浪漫没错了。
 
 ### std::packaged_task
-TODO....
+std::packaged_task实际上是一个可执行对象的封装，并且可以返回std::future用于查询运行结果。
+```c++
+#include <future>
+#include <thread>
+
+int Add(int x, int y) {
+	return x + y;
+}
+
+int main(int argc, char** argvs) {
+	// 传入lambda表达式构造std::packaged_task
+	std::packaged_task<int(int, int)> lambda_task([](int x, int y){
+		return x + y;
+	});
+	// 返回std::future对象
+	std::future<int> lambda_future = lambda_task.get_future();
+	lambda_task(3, 4);
+	lambda_future.get();
+
+	// 传入std::bind封装的可执行对象
+	std::packaged_task<int()> bind_task(std::bind(&Add, 5, 6));
+	// 返回std::future对象
+	std::future<int> bind_future = bind_task.get_future();
+	bind_task();
+	bind_future.get();
+
+	std::packaged_task<int(int, int)> normal_task(&Add);
+	std::future<int(int, int)> normal_future =  normal_task.get_future();
+	std::thread(std::move(normal_task), 7, 8);
+	normal_future.get();
+
+	return 0;
+}
+
+```
+std::packaged_task的特性可以用在thread_pool中，通过向thread_pool传入一个可执行函数以及参数，在thread_pool内部构造std::packaged_task，随后返回其std::future给thread_pool的调用者。当thread_pool中的std::packaged_task执行完成以后，调用者在thread_pool外部通过访问之前的std::future即可得到调用结果。这点在之后的thread_pool的文章中会提到。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
