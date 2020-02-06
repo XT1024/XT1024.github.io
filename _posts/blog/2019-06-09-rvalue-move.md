@@ -4,6 +4,13 @@ title: 右值引用与移动构造
 category: blog
 description: 记录对右值引用的理解，以及在工程中的常用点
 ---
+对于任一c++ 表达式，`值`(value)与`变量`(variable)是两个独立的概念。
+> `值`只有类别（value category）的区分，每个表达式属于三种基本值类别（prvalue, xvalue, lvalue) c++17更新，本文暂不理会，仅看左值与右值
+
+> `变量`只有类型(type) 的区分，例如int, double类型等
+
+`值类别`参考 [值类别](https://zh.cppreference.com/w/cpp/language/value_category)
+`引用类型`属于一种`变量类型`，包含`右值引用`,`左值引用`。
 
 ## 右值引用
 
