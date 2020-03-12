@@ -5,6 +5,29 @@ category: blog
 description: 记录more-effective-c++的条款理解
 ---
 
+## 条款13： 优先选用const_iterator
+优先选择`const_iterator`，如下
+```c++
+std::vector<int> values;
+auto it = std::find(values.cbegin(), values.cend(), 1968);
+values.insert(it, 1998);
+```
+ 
+ 然而在模板中，一般会使用非成员函数版本的`cbegin`与`cend`, c++11目前只提供了`std::begin`,`std::end`(短视hhh)，所以需要自己想办法实现`std::cend`
+ Meyers给出了一个巧妙的实现
+```c++
+template<typename T>
+auto cbegin(const T& container)->std::decltype(std::begin(container)) {
+	return std::begin(container);
+}
+template<typename T>
+auto cend(const T& container)->std::decltype(std::end(container)) {
+	return std::end(container);
+}
+```
+上述实现实际上是利用了`std::begin`和`std::end`对于传入的是参数是`const`类型，将会返回其`const_iterator`, 因此可以利用形参为const来转换。
+
+
 ## 条款15：只要有可能使用constexpr，就使用它
 
 > `constexpr`可用于声明对象和函数，声明对象时其值必须是编译期可知的，而声明函数则如果传入的参数是`constexpr`，函数结果也会在编译期计算出
@@ -59,3 +82,24 @@ private:
 
 ## 条款16：保证const成员函数的线程安全
 `const`成员函数 + `mutable`成员时，需要考虑线程安全性（用std::atomic或者std::mutex保护）
+
+
+
+## 条款17：默认特种成员函数的生成机制
+`默认构造函数`，`默认析构函数`，`默认复制构造函数`,`默认复制赋值函数` 在用户未自行定义的情况下编译器将会自动生成，这点应该都很清楚。
+c++11中新增的`移动构造函数`，`移动赋值函数`的生成机制有些差异，具体的有点复杂，记住没有什么意义。
+
+>在编写代码的时候，应当显式的定义所需要的特种成员函数
+
+```c++
+class Base {
+public:
+	Base() = default;
+	Base(const Base& base) = default;
+	Base& operator=(const Base& base) = default;
+	
+	Base(Base&& base) = default;
+	Base& operator=(Base&& base) = default;
+
+};
+```
