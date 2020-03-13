@@ -103,3 +103,27 @@ public:
 
 };
 ```
+
+## 条款18：使用std::unique_ptr管理具备专属所有权资源
+`std::unique_ptr`优先选用，可认为大小与裸指针相同，支持传用户自定义deleter，如下
+
+```c++
+auto deletor = [](Object* obj) {
+	doSomething(obj);
+	delete obj;
+};
+std::unique_ptr<Object, std::decltype(deletor)> p(nullptr, deletor);
+```
+`std::unique_ptr`提供两种形式:
+1. `std::unique_ptr<T>` 针对单个对象，不提供`[]`操作符
+2. `std::unique_ptr<T[]>` 针对数组，
+
+**`std::unique_ptr` 可以方便的转换为 `std::shared_ptr`**
+
+## 知识性了解(TODO)
+1. 为何要提供两种形式
+2. 工厂函数的实现可以自己尝试下
+
+## 条款19：使用std::shared_ptr管理具备共享所有权的资源
+不能过于滥用`std::shared_ptr`！！！！（考虑km提到的在lambda里的使用问题
+>思考：使用单例shared_ptr是否是最佳选择？
