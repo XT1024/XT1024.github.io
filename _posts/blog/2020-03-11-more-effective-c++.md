@@ -4,6 +4,28 @@ title: more-effective-c++ 读书笔记
 category: blog
 description: 记录more-effective-c++的条款理解
 ---
+## 条款10：优先选用scoped的枚举类型，而非不限作用域的枚举类型
+```c++
+enum Color {black, white, red};
+auto white = false; // wrong
+
+enum class Color {black, white, red};
+auto white = false; // ok
+Color d = white;	// wrong
+Color c = Color::white; // ok
+
+```
+简单理解：`enum class`是带作用域的强类型，不会隐式的转换到整数类型。
+
+
+## 条款11: 使用删除函数，而不是用private
+c++11中新增删除函数，即`= delete`用于声明函数未定义，主要在以下场景中使用
+1. 声明特种函数为`未定义`状态，例如不需要复制构造函数可声明为`= delete`
+2. 在一般函数，或者模板函数中，声明某种参数类型的函数为`= delete`
+
+## 条款12： 为意在改写的函数添加override声明
+`override`声明表示虚函数的改写，可以避免因为错误的声明了函数签名。
+
 
 ## 条款13： 优先选用const_iterator
 优先选择`const_iterator`，如下
@@ -12,7 +34,7 @@ std::vector<int> values;
 auto it = std::find(values.cbegin(), values.cend(), 1968);
 values.insert(it, 1998);
 ```
- 
+
  然而在模板中，一般会使用非成员函数版本的`cbegin`与`cend`, c++11目前只提供了`std::begin`,`std::end`(短视hhh)，所以需要自己想办法实现`std::cend`
  Meyers给出了一个巧妙的实现
 ```c++
@@ -126,4 +148,5 @@ std::unique_ptr<Object, std::decltype(deletor)> p(nullptr, deletor);
 
 ## 条款19：使用std::shared_ptr管理具备共享所有权的资源
 不能过于滥用`std::shared_ptr`！！！！（考虑km提到的在lambda里的使用问题
+
 >思考：使用单例shared_ptr是否是最佳选择？
