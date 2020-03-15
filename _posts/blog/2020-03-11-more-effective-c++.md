@@ -149,4 +149,107 @@ std::unique_ptr<Object, std::decltype(deletor)> p(nullptr, deletor);
 ## 条款19：使用std::shared_ptr管理具备共享所有权的资源
 不能过于滥用`std::shared_ptr`！！！！（考虑km提到的在lambda里的使用问题
 
->思考：使用单例shared_ptr是否是最佳选择？
+## 条款21： 优先使用std::make_shared和std::make_unique，而不是使用new
+**理由一：减少重复输入类名**
+```c++
+auto ptr(std::make_shared<Widget>());
+std::shared_ptr<Widget> p(new Widget);
+```
+**理由二：潜在的内存泄漏**
+```c++
+void ProcessWidget(std::shared_ptr<Widget>(new Widget), compute());
+/*
+编译器产生的代码顺序可能是
+1. new Widget
+2. compute()
+3. std::shared_ptr<Widget>(ptr)
+*/
+void ProcessWidgetOk(std::make_shared<Widget>(), compute()); // ok
+```
+由于编译器可能产生上述代码，如果在`compute`中产生了异常，则`3`不会执行，导致内存泄漏.
+
+**理由三： 性能提升**
+`std::shared_ptr`实际上会产生两次内存分配，一次是所指对象的内存，另一次是引用技术的控制块内存，而`std::make_shared`会一次申请两个的内存。
+
+### 不适合使用make系列的场景
+**场景一： make系列不能使用自定义析构器**
+**场景二：大括号初始化物的构造函数匹配问题**
+**场景三： shared_ptr: 自定义内存管理的类；内存紧张、大对象、存在生存周期长于shared_ptr的weak_ptr**
+
+## 条款23：理解std::move和std::forward
+`std::move`并不移动什么，本质上只是一个强制右值转换的函数，`std::forward`是有条件的强制右值转换。
+
+### std::move
+**理解一：std::move仅是一个强制右值转换的函数**
+低配版本的move实现
+```c++
+template<typename T>
+typename std::remove_reference<T>::type&& // make sure return rvalue
+move(T&& param) {
+	using ReturnType = std::remove_reference<T>::type&&;
+	return static_cast<ReturnType>(param);
+}
+```
+**理解二：std::move不应该接受一个const的参数**
+`std::move`在强制转换为右值时保留`const`，因此其函数结果返回的是一个`const`，函数返回结果作为参数，并不会调用想象中的`移动构造函数`，而是调用了`复制构造函数`
+```c++
+class Widget {
+public:
+	explicit Widget(const std::string val):
+	m_value(std::move(val)) {}
+private:
+	std::string m_value;
+}
+```
+上述例子是无效的。。。`m_value(std::move(val))`调用的并不是`移动构造函数`，而是`复制构造函数`。
+
+### std::forward
+`std::forward`是一个有条件的强制右值转换，先看下`std::forward`的来源。
+```c++
+void process(const Widget& widget);
+void process(Widget&& widget);
+
+template<typename T>
+void log_and_process(T&& t) {
+	log("log and process");
+	process(t);
+}
+Widget w;
+log_and_process(w);
+log_and_process(std::move(w));
+```
+上述代码本意是在`log_and_process`传入`右值`时调用`process`的右值参数版本，在为`左值`时,调用`process`的左值参数版本。可惜的是上述调用的都是`process(const Widget& widget)`，因为形参`t`必定是`左值`！！！！
+
+```c++
+void process(const Widget& widget);
+void process(Widget&& widget);
+
+template<typename T>
+void log_and_process(T&& t) {
+	log("log and process");
+	process(std::forward<T>(t)); // ok
+}
+Widget w;
+log_and_process(w);
+log_and_process(std::move(w));
+```
+上述`std::forward`作用是当`log_and_process`传入的是`右值`情况下，将`形参t`强制转换成`右值`。
+```c++
+template<typename T>
+void f(T&& t) {
+	process(std::forward<T>(t))
+}
+int i = 1;
+f(i);	// T为 int&, t为 int&
+f(27);	// T为 int, t为 int&
+template<typename T>
+T&& forward(typename std::remove_reference<T>::type& t) { 
+// f传入左值返回左值类型，传入右值返回右值类型
+	return static_cast<T&&>(t);
+}
+```
+推导过程参看 [forward](http://xt1024.github.io/forward)
+
+## 条款24：区分万能引用和右值引用（！！！！尤其注意！！！）
+`universal reference`必须正好是`T&&`，其他的均为右值引用。
+
