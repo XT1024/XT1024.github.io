@@ -242,6 +242,7 @@ void f(T&& t) {
 int i = 1;
 f(i);	// T为 int&, t为 int&
 f(27);	// T为 int, t为 int&
+
 template<typename T>
 T&& forward(typename std::remove_reference<T>::type& t) { 
 // f传入左值返回左值类型，传入右值返回右值类型
@@ -253,3 +254,52 @@ T&& forward(typename std::remove_reference<T>::type& t) {
 ## 条款24：区分万能引用和右值引用（！！！！尤其注意！！！）
 `universal reference`必须正好是`T&&`，其他的均为右值引用。
 
+
+## 条款25：针对右值引用实施std::move，针对万能引用实施std::forward
+**理解一: 确定是右值引用时，使用`std::move`**
+
+```c++
+class Widget {
+public:
+	void setName(std::string&& name) {
+		m_name = std::move(name);
+	}
+}
+```
+**理解二: 万能引用时，使用`std::forward`转发（可能是传入左值引用，如果用`std::move`的话破坏传入的值而外部感知不到。）
+```c++
+class Widget {
+public:
+	template<typename T>
+	void setAttribute(T&& param) {
+		m_name = std::forward<T>(param);
+	}
+}
+```
+**理解三： 千万别干在函数返回值中使用`std::move`的神奇操作，弄巧成拙**
+```c++
+Widget make(const std::string& name) {
+		Widget w;
+		w.setName(name);
+		return std::move(w); // 绝对不要干这种事，编译器有return value optimization(RVO) 极有可能破坏了编译器优化，参考`RVO` 第二条
+}
+
+```
+`RVO`标准有两个前提条件
+1. 局部对象类型和函数返回值类型相同
+2. 返回的就是局部对象本身
+实际上，标准要求：当`RVO`的前提条件允许，要么发生`复制省略`，要么`std::move`隐式的被实施于返回的局部对象上。
+
+
+## 条款26： 避免依万能引用类型进行重载
+1. 万能引用会劫持大部分参数，在大部分情况下将发生意想不到的调用版本。
+2. 尽量别搞完美转发构造函数，真的，除非你很清楚会发生什么。
+
+
+## 条款27： 万能引用进行重载的替代方案（这个条款比较有趣，可以读读，但尽量别用）
+
+
+## 条款28： 理解引用折叠
+`引用折叠`是编译器自身转换的原则，不代表开发者可以使用。 理解引用折叠是理解`std::forward`,`std::move`源码的基础。
+**理解一： 引用折叠是编译器视角发生的事**
+**理解二： 原始的引用中存在任意一个是左值引用，则结果为左值引用；否则为右值引用**
