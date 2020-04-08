@@ -319,3 +319,26 @@ public:
 
 
 **理解三： 某些场景下，如果移动操作没有加noexcept，可能仍会调用复制操作**
+
+
+## 条款31： 避免默认捕获引用
+引用的默认捕获，以及值的默认捕获都容易导致引用空悬，指针空悬。
+
+**理解一： 指明需要捕获的值**
+```c++
+
+std::vector<std::function<bool(int)>> filters;
+void add() {
+	auto divisor = computeDivisor();
+	filters.emplace_back([&](int val) {
+		return val % divisor;				// wrong! divisor会释放掉
+	});
+}
+
+void addRight() {
+	auto divisor = computeDivisor();
+	filters.emplace_back([divisor](int val) {
+		return val % divisor;				// ok!
+	});
+}
+```
