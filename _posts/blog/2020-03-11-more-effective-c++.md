@@ -342,3 +342,20 @@ void addRight() {
 	});
 }
 ```
+**理解二： 静态成员可以被使用，但是不能被捕获**
+
+## 条款32： 使用初始化捕获将对象移入闭包内
+将复制操作开销大的对象移入闭包内，c++14提供了一种初始化捕获的方式，例如
+```c++
+// c++ 14
+std::vector<double> data;
+auto func = [data = std::move(data)] {/**/}; // data的作用域是lambda表达式内，而std::move(data)的作用域是lambda
+
+// c++ 11
+std::vector<double> data;
+auto func = std::bind([](const std::vector<double>& data) {/**/}, std::move(data));
+```
+c++11中需要通过`std::bind`绑定参数，`std::bind`产生的对象内持有参数的副本，对于左值采用复制，右值采用移动。
+
+> 移动构造一个对象进c++11闭包是不可能实现的，但移动构造一个对象进绑定对象时可能实现的
+
